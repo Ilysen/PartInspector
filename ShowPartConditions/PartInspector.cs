@@ -32,6 +32,9 @@ namespace PartInspector
         /// </summary>
         internal static FsmVariables _satsumaVars;
 
+        /// <summary>
+        /// A list of all FSMs used in the motor database. These are where the game keeps track of if parts are installed, broken, etc - but not wear-and-tear, which exists on independently FSMs on each part.
+        /// </summary>
         private List<PlayMakerFSM> _motorDb;
 
         /// <summary>
