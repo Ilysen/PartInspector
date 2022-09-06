@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using UnityEngine;
 
-namespace ShowPartConditions
+namespace PartInspector
 {
     /// <summary>
     /// Tracks the exact integrity of the assigned part using the provided information. Broken parts will display as broken.
@@ -45,7 +45,7 @@ namespace ShowPartConditions
                 newText = "Broken";
             else
             {
-                switch (ShowPartConditions._displayPrecision.GetSelectedItemIndex())
+                switch (PartInspector._displayPrecision.GetSelectedItemIndex())
                 {
                     case 1: // General description
                         string descriptor;

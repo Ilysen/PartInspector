@@ -1,13 +1,12 @@
 ﻿using HutongGames.PlayMaker;
-using HutongGames.PlayMaker.Actions;
 using MSCLoader;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ShowPartConditions
+namespace PartInspector
 {
-    public class ShowPartConditions : Mod
+    public class PartInspector : Mod
     {
         private enum TrackerType
         {
@@ -17,11 +16,11 @@ namespace ShowPartConditions
         }
 
         // MSCLoader stuff
-        public override string ID => "ShowPartConditions";
-        public override string Name => "Show Part Conditions";
+        public override string ID => "PartInspector";
+        public override string Name => "Part Inspector";
         public override string Author => "Ava";
         public override string Version => "1.0";
-        public override string Description => "Displays the integrity level of parts that you look at.";
+        public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
 
         internal static SettingsDropDownList _displayLocation;
         internal static SettingsDropDownList _displayPrecision;

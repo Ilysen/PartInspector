@@ -4,12 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ShowPartConditions")]
-[assembly: AssemblyDescription("My Summer Car Mod file")]
+[assembly: AssemblyTitle("PartInspector")]
+[assembly: AssemblyDescription("A mod for My Summer Car.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ShowPartConditions")]
-[assembly: AssemblyCopyright("Copyright © 2022 by Ava")]
+[assembly: AssemblyCopyright("MIT License")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

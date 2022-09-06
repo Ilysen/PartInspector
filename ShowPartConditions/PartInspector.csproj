@@ -7,8 +7,8 @@
     <ProjectGuid>{9CC6E7D4-46E3-46A7-A2D9-46716011A1F5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ShowPartConditions</RootNamespace>
-    <AssemblyName>ShowPartConditions</AssemblyName>
+    <RootNamespace>PartInspector</RootNamespace>
+    <AssemblyName>PartInspector</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
@@ -63,7 +63,7 @@
     <Compile Include="Wear Trackers\SimpleWearTracker.cs" />
     <Compile Include="Wear Trackers\OilFilterTracker.cs" />
     <Compile Include="Wear Trackers\StandardWearTracker.cs" />
-    <Compile Include="ShowPartConditions.cs" />
+    <Compile Include="PartInspector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

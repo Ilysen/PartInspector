@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using UnityEngine;
 
-namespace ShowPartConditions
+namespace PartInspector
 {
     /// <summary>
     /// Tracks how dirty an oil filter is.
@@ -25,7 +25,7 @@ namespace ShowPartConditions
         {
             string newText;
             float effectiveFilth = _dirtFsm.GetFsmFloat("Dirt").Value;
-            switch (ShowPartConditions._displayPrecision.GetSelectedItemIndex())
+            switch (PartInspector._displayPrecision.GetSelectedItemIndex())
             {
                 case 1: // "Intact" and "broken" doesn't really apply to oil filters, so we always generalize if not using the percentage option
                 case 2:

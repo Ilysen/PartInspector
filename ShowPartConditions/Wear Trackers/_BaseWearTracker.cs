@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ShowPartConditions
+namespace PartInspector
 {
     /// <summary>
     /// Base wear tracker class with shared logic.
