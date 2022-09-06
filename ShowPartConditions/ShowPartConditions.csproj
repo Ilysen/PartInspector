@@ -59,7 +59,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WearTracker.cs" />
+    <Compile Include="Wear Trackers\_BaseWearTracker.cs" />
+    <Compile Include="Wear Trackers\SimpleWearTracker.cs" />
+    <Compile Include="Wear Trackers\OilFilterTracker.cs" />
+    <Compile Include="Wear Trackers\StandardWearTracker.cs" />
     <Compile Include="ShowPartConditions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

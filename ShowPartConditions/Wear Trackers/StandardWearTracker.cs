@@ -1,0 +1,81 @@
+﻿using HutongGames.PlayMaker;
+using UnityEngine;
+
+namespace ShowPartConditions
+{
+    /// <summary>
+    /// Tracks the exact integrity of the assigned part using the provided information. Broken parts will display as broken.
+    /// </summary>
+    internal class StandardWearTracker : BaseWearTracker
+    {
+        /// <summary>
+        /// The key used to fetch the wear value of this part from <see cref="_wearValues"/>.
+        /// </summary>
+        private string _wearKey;
+
+        /// <summary>
+        /// These variables contain the wear value for this part.
+        /// </summary>
+        private FsmVariables _wearValues;
+
+        /// <summary>
+        /// Used to track if this part is broken or not. My Summer Car separates these, so we gotta too.
+        /// </summary>
+        private FsmVariables _dbInfo;
+
+        /// <inheritdoc/>
+        internal override void Initialize(string initName, params object[] extraArgs)
+        {
+            base.Initialize(initName);
+            _wearKey = (string)extraArgs[0];
+            _wearValues = (FsmVariables)extraArgs[1];
+            _dbInfo = (FsmVariables)extraArgs[2];
+        }
+
+        /// <inheritdoc/>
+        internal override void BuildDisplayText()
+        {
+            float partWear = 0;
+            if (_wearKey != null)
+                partWear = _wearValues.GetFsmFloat(_wearKey).Value;
+            if (_dbInfo.GetFsmBool("Damaged").Value == true)
+                partWear = -100;
+            string newText;
+            if (partWear <= 0) // Always display broken parts as just "broken"
+                newText = "Broken";
+            else
+            {
+                switch (ShowPartConditions._displayPrecision.GetSelectedItemIndex())
+                {
+                    case 1: // General description
+                        string descriptor;
+                        if (partWear >= 90)
+                            descriptor = "mint";
+                        else if (partWear >= 80)
+                            descriptor = "great";
+                        else if (partWear >= 65)
+                            descriptor = "good";
+                        else if (partWear >= 50)
+                            descriptor = "decent";
+                        else if (partWear >= 35)
+                            descriptor = "shoddy";
+                        else if (partWear >= 20)
+                            descriptor = "poor";
+                        else if (partWear >= 10)
+                            descriptor = "bad";
+                        else
+                            descriptor = "terrible";
+                        newText = string.Format("In {0} condition", descriptor);
+                        break;
+                    case 2: // Broken/not broken
+                        newText = "Intact";
+                        break;
+                    default: // Exact percentage
+                        newText = Mathf.RoundToInt(partWear) + "%";
+                        break;
+                }
+            }
+            DisplayText = string.Format("{0} - {1}", InitialName, newText);
+        }
+    }
+}
