@@ -12,14 +12,15 @@ namespace PartInspector
         {
             Standard = 1,
             Simple = 2,
-            OilFilter = 3
+            OilFilter = 3,
+            SparkPlug = 4
         }
 
         // MSCLoader stuff
         public override string ID => "PartInspector";
         public override string Name => "Part Inspector";
         public override string Author => "Ava";
-        public override string Version => "1.0";
+        public override string Version => "1.1";
         public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
 
         internal static SettingsDropDownList _displayLocation;
@@ -204,6 +205,11 @@ namespace PartInspector
                     of.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables);
                     bwt = of;
                     break;
+                case TrackerType.SparkPlug:
+                    SparkPlugTracker sp = go.AddComponent<SparkPlugTracker>();
+                    sp.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables);
+                    bwt = sp;
+                    break;
             }
             if (bwt != null)
             {
@@ -237,7 +243,8 @@ namespace PartInspector
             { "water pump(Clone)", "Waterpump" },
             { "block(Clone)", TrackerType.Simple },
             { "oilpan(Clone)", TrackerType.Simple },
-            { "oil filter(Clone)", TrackerType.OilFilter }
+            { "oil filter(Clone)", TrackerType.OilFilter },
+            { "spark plug(Clone)", TrackerType.SparkPlug }
         };
     }
 }
