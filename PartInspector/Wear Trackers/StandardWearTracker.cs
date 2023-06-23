@@ -33,13 +33,20 @@ namespace PartInspector
         }
 
         /// <inheritdoc/>
-        internal override void BuildDisplayText()
+        internal override float GetWearPercentage()
         {
             float partWear = 0;
             if (_wearKey != null)
                 partWear = _wearValues.GetFsmFloat(_wearKey).Value;
             if (_dbInfo.GetFsmBool("Damaged").Value == true)
                 partWear = -100;
+            return partWear;
+        }
+
+        /// <inheritdoc/>
+        internal override void BuildDisplayText()
+        {
+            float partWear = GetWearPercentage();
             string newText;
             if (partWear <= 0) // Always display broken parts as just "broken"
                 newText = "Broken";

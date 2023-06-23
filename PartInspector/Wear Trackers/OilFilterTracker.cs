@@ -21,6 +21,9 @@ namespace PartInspector
         }
 
         /// <inheritdoc/>
+        internal override float GetWearPercentage() => _dirtFsm.GetFsmFloat("Dirt").Value;
+
+        /// <inheritdoc/>
         internal override void BuildDisplayText()
         {
             string newText;

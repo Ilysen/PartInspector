@@ -1,5 +1,6 @@
 ﻿using HutongGames.PlayMaker;
 using MSCLoader;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -13,7 +14,8 @@ namespace PartInspector
             Standard = 1,
             Simple = 2,
             OilFilter = 3,
-            SparkPlug = 4
+            SparkPlug = 4,
+            AlternatorBelt = 5
         }
 
         // MSCLoader stuff
@@ -188,6 +190,7 @@ namespace PartInspector
                 }
             }
             BaseWearTracker bwt = null;
+            Type newTrackerType = null;
             switch (tt)
             {
                 case TrackerType.Standard:
@@ -201,15 +204,25 @@ namespace PartInspector
                     bwt = smt;
                     break;
                 case TrackerType.OilFilter:
-                    OilFilterTracker of = go.AddComponent<OilFilterTracker>();
-                    of.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables);
-                    bwt = of;
+                    newTrackerType = typeof(OilFilterTracker);
                     break;
                 case TrackerType.SparkPlug:
-                    SparkPlugTracker sp = go.AddComponent<SparkPlugTracker>();
-                    sp.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables);
-                    bwt = sp;
+                    newTrackerType = typeof(SparkPlugTracker);
                     break;
+                case TrackerType.AlternatorBelt:
+                    newTrackerType = typeof(AlternatorBeltTracker);
+                    break;
+            }
+            // We have a convenient thing going for us here with a bunch of different types of part:
+            // they all keep their integrity variables in a playmaker with the name "Use"
+            // as such, instead of copy-pasting all the relevant logic, we do some evil code here to apply a tracker of the relevant type
+            // as determined by the part we're looking.
+            // it's technically cleaner!
+            if (newTrackerType != null && typeof(BaseWearTracker).IsAssignableFrom(newTrackerType))
+            {
+                BaseWearTracker bt = (BaseWearTracker)go.AddComponent(newTrackerType);
+                bt.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables);
+                bwt = bt;
             }
             if (bwt != null)
             {
@@ -244,7 +257,8 @@ namespace PartInspector
             { "block(Clone)", TrackerType.Simple },
             { "oilpan(Clone)", TrackerType.Simple },
             { "oil filter(Clone)", TrackerType.OilFilter },
-            { "spark plug(Clone)", TrackerType.SparkPlug }
+            { "spark plug(Clone)", TrackerType.SparkPlug },
+            { "alternator belt(Clone)", TrackerType.AlternatorBelt }
         };
     }
 }

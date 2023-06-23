@@ -9,9 +9,10 @@ namespace PartInspector
     internal class SparkPlugTracker : BaseWearTracker
     {
         /// <summary>
-        /// The FSM that keeps track of this filter's dirtiness.
+        /// The FSM that keeps track of this spark plug's wear.
+        /// This is protected and not private because alternator belt trackers inherit logic - see <see cref="AlternatorBeltTracker"/> for more info.
         /// </summary>
-        private FsmVariables _wearFsm;
+        protected FsmVariables _wearFsm;
 
         /// <inheritdoc/>
         internal override void Initialize(string initName, params object[] extraArgs)
@@ -20,11 +21,17 @@ namespace PartInspector
             _wearFsm = (FsmVariables)extraArgs[0];
         }
 
+        // unlike nearly every other part, MSC tracks integrity on spark plugs as a positive value and not a negative one;
+        // i.e. it's closer to "remaining health" than it is to "total damage".
+        // why it does this in differently from everything other part, I will never know 
+        /// <inheritdoc/>
+        internal override float GetWearPercentage() => 100 - _wearFsm.GetFsmFloat("Wear").Value;
+
         /// <inheritdoc/>
         internal override void BuildDisplayText()
         {
             string newText;
-            float effectiveWear = _wearFsm.GetFsmFloat("Wear").Value;
+            float effectiveWear = GetWearPercentage();
             switch (PartInspector._displayPrecision.GetSelectedItemIndex())
             {
                 case 1: // General description
