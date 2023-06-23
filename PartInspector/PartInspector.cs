@@ -91,12 +91,12 @@ namespace PartInspector
             foreach (PlayMakerFSM fsm in GameObject.Find("Database/DatabaseMotor").GetComponentsInChildren<PlayMakerFSM>())
             {
                 if (_verboseLogging.GetValue())
-                    ModConsole.Print(string.Format("Adding fsm to database: {0}", fsm.gameObject.name));
+                    ModConsole.Print($"Adding fsm to database: {fsm.gameObject.name}");
                 _motorDb.Add(fsm);
             }
             RefreshDisplayGUI();
             RebuildDisplays();
-            ModConsole.Print(string.Format("{0} version {1} has been initialized!", Name, Version));
+            ModConsole.Print($"{Name} version {Version} has been initialized!");
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace PartInspector
                 else
                 {
                     if (_verboseLogging.GetValue())
-                        ModConsole.Print(string.Format("Detected valid object: {0}. Adding wear tracker.", go.name));
+                        ModConsole.Print($"Detected a valid object named \"{go.name}\". Adding wear tracker.");
                     TrackerType tt = TrackerType.Standard;
                     if (_partNames[go.name] is TrackerType pt)
                         tt = pt;
@@ -230,7 +230,7 @@ namespace PartInspector
                 _wearTrackers.Add(go, bwt);
             }
             if (_verboseLogging.GetValue())
-                ModConsole.Print(string.Format("A wear tracker component was added to a new gameobject: {0}.", go.name));
+                ModConsole.Print($"A wear tracker component of type {bwt.GetType()} was added to a GameObject named \"{go.name}\".");
         }
 
         /// <summary>

@@ -72,7 +72,7 @@ namespace PartInspector
                             descriptor = "bad";
                         else
                             descriptor = "terrible";
-                        newText = string.Format("In {0} condition", descriptor);
+                        newText = $"In {descriptor} condition";
                         break;
                     case 2: // Broken/not broken
                         newText = "Intact";
@@ -82,7 +82,7 @@ namespace PartInspector
                         break;
                 }
             }
-            DisplayText = string.Format("{0} - {1}", InitialName, newText);
+            DisplayText = $"{InitialName} - {newText}";
         }
     }
 }

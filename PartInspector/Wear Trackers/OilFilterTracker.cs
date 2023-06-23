@@ -44,10 +44,10 @@ namespace PartInspector
                         newText = "Brand new";
                     break;
                 default: // Exact percentage
-                    newText = string.Format("{0} dirty", Mathf.RoundToInt(effectiveFilth) + "%");
+                    newText = $"{Mathf.RoundToInt(effectiveFilth)}% dirty";
                     break;
             }
-            DisplayText = string.Format("{0} - {1}", InitialName, newText);
+            DisplayText = $"{InitialName} - {newText}";
         }
     }
 }

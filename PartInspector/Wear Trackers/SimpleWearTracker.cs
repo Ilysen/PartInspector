@@ -22,7 +22,7 @@ namespace PartInspector
         /// <inheritdoc/>
         internal override void BuildDisplayText()
         {
-            DisplayText = string.Format("{0} - {1}", InitialName, _dbInfo.GetFsmBool("Damaged").Value ? "Broken" : "Intact");
+            DisplayText = $"{InitialName} - {(_dbInfo.GetFsmBool("Damaged").Value ? "Broken" : "Intact")}";
         }
     }
 }

@@ -35,21 +35,25 @@ namespace PartInspector
             switch (PartInspector._displayPrecision.GetSelectedItemIndex())
             {
                 case 1: // General description
-                    if (effectiveWear >= 85)
-                        newText = "Failing";
-                    else if (effectiveWear >= 35)
-                        newText = "Worn";
+                    string descriptor;
+                    if (effectiveWear >= 90)
+                        descriptor = "mint";
+                    else if (effectiveWear >= 65)
+                        descriptor = "great";
+                    else if (effectiveWear >= 15)
+                        descriptor = "shoddy";
                     else
-                        newText = "New";
+                        descriptor = "terrible";
+                    newText = $"In {descriptor} condition";
                     break;
                 case 2: // Broken/not broken
-                    newText = effectiveWear >= 85 ? "Failing" : "Intact";
+                    newText = effectiveWear >= 85 ? "Broken" : "Intact";
                     break;
                 default: // Exact percentage
-                    newText = string.Format("{0} worn down", Mathf.RoundToInt(effectiveWear) + "%");
+                    newText = Mathf.RoundToInt(effectiveWear) + "%";
                     break;
             }
-            DisplayText = string.Format("{0} - {1}", InitialName, newText);
+            DisplayText = $"{InitialName} - {newText}";
         }
     }
 }
