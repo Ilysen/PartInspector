@@ -21,11 +21,8 @@ namespace PartInspector
             _wearFsm = (FsmVariables)extraArgs[0];
         }
 
-        // unlike nearly every other part, MSC tracks integrity on spark plugs as a positive value and not a negative one;
-        // i.e. it's closer to "remaining health" than it is to "total damage".
-        // why it does this in differently from everything other part, I will never know 
         /// <inheritdoc/>
-        internal override float GetWearPercentage() => 100 - _wearFsm.GetFsmFloat("Wear").Value;
+        internal override float GetWearPercentage() => _wearFsm.GetFsmFloat("Wear").Value;
 
         /// <inheritdoc/>
         internal override void BuildDisplayText()
@@ -40,8 +37,10 @@ namespace PartInspector
                         descriptor = "mint";
                     else if (effectiveWear >= 65)
                         descriptor = "great";
+                    else if (effectiveWear >= 25)
+                        descriptor = "decent";
                     else if (effectiveWear >= 15)
-                        descriptor = "shoddy";
+                        descriptor = "bad";
                     else
                         descriptor = "terrible";
                     newText = $"In {descriptor} condition";
