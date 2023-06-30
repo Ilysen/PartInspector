@@ -24,7 +24,7 @@ namespace PartInspector
 		public override string ID => "PartInspector";
 		public override string Name => "Part Inspector";
 		public override string Author => "Ava";
-		public override string Version => "1.1";
+		public override string Version => "1.2";
 		public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
 
 		internal static SettingsDropDownList DisplayLocation;
@@ -100,6 +100,7 @@ namespace PartInspector
 			EnableSparkPlugTrackers = Settings.AddCheckBox(this, "enableSparkPlugTrackers", "Spark plug wear", true);
 			EnableOilFilterTrackers = Settings.AddCheckBox(this, "enableOilFilterTrackers", "Oil filter dirtiness", true);
 			EnableFluidContainerTrackers = Settings.AddCheckBox(this, "enableFluidContainerTrackers", "Fluid container fullness", true);
+			Settings.AddText(this, "Includes brake fluid, motor oil, two-stroke fuel, and coolant canisters.");
 
 			Settings.AddHeader(this, "Debug", headingColor, Color.white);
 			VerboseLogging = Settings.AddCheckBox(this, "verboseLogging", "Verbose logging", false);
@@ -151,8 +152,27 @@ namespace PartInspector
 			if (_updateTimer >= _timeBetweenUpdates)
 			{
 				_updateTimer = 0f;
-				foreach (BaseWearTracker wt in _wearTrackers.Values)
-					wt.BuildDisplayText();
+				List<GameObject> toRemove = new List<GameObject>();
+				foreach (KeyValuePair<GameObject, BaseWearTracker> kvp in _wearTrackers)
+				{
+					// Ensure that destroyed objects have their trackers disposed properly from the master list
+					// We do this after iteration to avoid runtimes
+					if (kvp.Key == null)
+					{
+						if (VerboseLogging.GetValue())
+							ModConsole.Print($"Found a tracker of type {kvp.Value.GetType()} with a null object. Adding to removal queue.");
+						toRemove.Add(kvp.Key);
+						continue;
+					}
+					kvp.Value.BuildDisplayText();
+
+				}
+				foreach (var obj in toRemove)
+				{
+					if (VerboseLogging.GetValue())
+						ModConsole.Print($"Removing null tracker...");
+					_wearTrackers.Remove(obj);
+				}
 			}
 		}
 
@@ -254,7 +274,10 @@ namespace PartInspector
 						maxFluid = 4f;
 					else if (go.name.Contains("two stroke fuel"))
 						maxFluid = 5f;
+					else if (go.name.Contains("coolant"))
+						maxFluid = 10f;
 					ft.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables, maxFluid);
+					bwt = ft;
 					break;
 			}
 			// We have a convenient thing going for us here with a bunch of different types of part:
@@ -305,7 +328,8 @@ namespace PartInspector
 			{ "alternator belt(Clone)", TrackerType.AlternatorBelt },
 			{ "brake fluid(itemx)", TrackerType.Fluid },
 			{ "two stroke fuel(itemx)", TrackerType.Fluid },
-			{ "motor oil(itemx)", TrackerType.Fluid }
+			{ "motor oil(itemx)", TrackerType.Fluid },
+			{ "coolant(itemx)", TrackerType.Fluid }
 		};
 	}
 }

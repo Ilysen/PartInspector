@@ -23,7 +23,7 @@ namespace PartInspector
 		/// </summary>
 		internal virtual void Initialize(string initName, params object[] extraArgs)
 		{
-			InitialName = initName.Replace("(Clone)", "");
+			InitialName = initName.Replace("(Clone)", "").Replace("(itemx)", "");
 		}
 
 		/// <summary>
