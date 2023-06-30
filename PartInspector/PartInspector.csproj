@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Wear Trackers\AlternatorBeltTracker.cs" />
+    <Compile Include="Wear Trackers\FluidTracker.cs" />
     <Compile Include="Wear Trackers\SparkPlugTracker.cs" />
     <Compile Include="Wear Trackers\_BaseWearTracker.cs" />
     <Compile Include="Wear Trackers\SimpleWearTracker.cs" />
