@@ -23,8 +23,8 @@ namespace PartInspector
 		// MSCLoader stuff
 		public override string ID => "PartInspector";
 		public override string Name => "Part Inspector";
-		public override string Author => "Ava";
-		public override string Version => "1.2";
+		public override string Author => "Ceres et al.";
+		public override string Version => "1.2.1";
 		public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
 
 		internal static SettingsDropDownList DisplayLocation;
@@ -182,8 +182,8 @@ namespace PartInspector
 		private void UpdateInspection()
 		{
 			// Raycasting every frame is extremely cheap compared to other logic, so we check to make sure we're aiming at something first
-			Ray ray = _plyCamera.ScreenPointToRay(Input.mousePosition);
-			if (Physics.Raycast(ray, out RaycastHit hit, 1f))
+			RaycastHit hit = UnifiedRaycast.GetRaycastHit();
+			if (hit.distance <= 1f && hit.collider?.gameObject != null)
 			{
 				// If we're aiming at a part designated in _partNames, continue
 				GameObject go = hit.collider.gameObject;
