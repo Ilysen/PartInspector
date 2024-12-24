@@ -190,10 +190,9 @@ namespace PartInspector
 				if (!_partNames.Keys.Contains(go.name))
 				{
 					// We check for a parent object because some parts (like the water pump) have children with colliders
-					if (!_partNames.Keys.Contains(go.transform.parent.gameObject.name))
+					if (!go.transform.parent?.gameObject || !_partNames.Keys.Contains(go.transform.parent.gameObject.name))
 						return;
-					else
-						go = go.transform.parent.gameObject;
+					go = go.transform.parent.gameObject;
 				}
 				// Does the object already have a wear tracker? Display the part's integrity data
 				if (_wearTrackers.Keys.Contains(go))
