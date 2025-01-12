@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using UnityEngine;
 
-namespace PartInspector
+namespace Ceres.PartInspector.Trackers
 {
 	/// <summary>
 	/// Tracks the exact integrity of the assigned part using the provided information. Broken parts will display as broken.
@@ -36,10 +36,10 @@ namespace PartInspector
 		internal override float GetWearPercentage()
 		{
 			float partWear = 0;
-			if (_wearKey != null)
+			// Broken parts technically keep their wear value as-is; whether or not they're intact is tracked with a separate variable
+			// As a result, we skip checking for wear values on broken parts, and instead just treat them as having zero integrity
+			if (!_dbInfo.GetFsmBool("Damaged").Value && _wearKey != null)
 				partWear = _wearValues.GetFsmFloat(_wearKey).Value;
-			if (_dbInfo.GetFsmBool("Damaged").Value == true)
-				partWear = -100;
 			return partWear;
 		}
 

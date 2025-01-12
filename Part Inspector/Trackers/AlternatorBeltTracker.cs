@@ -1,4 +1,4 @@
-﻿namespace PartInspector
+﻿namespace Ceres.PartInspector.Trackers
 {
 	/// <summary>
 	/// Tracks how worn-down a spark plug is.
@@ -7,7 +7,7 @@
 	/// </summary>
 	internal class AlternatorBeltTracker : SparkPlugTracker
 	{
-		// unlike nearly every other part, MSC tracks integrity on spark plugs as a positive value and not a negative one;
+		// unlike nearly every other part, MSC tracks integrity on alternator belts as a positive value and not a negative one;
 		// i.e. it's closer to "remaining health" than it is to "total damage".
 		// why it does this in differently from everything other part, I will never know
 		/// <inheritdoc/>

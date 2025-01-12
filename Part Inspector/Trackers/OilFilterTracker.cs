@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using UnityEngine;
 
-namespace PartInspector
+namespace Ceres.PartInspector.Trackers
 {
 	/// <summary>
 	/// Tracks how dirty an oil filter is.

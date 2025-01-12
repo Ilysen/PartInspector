@@ -7,7 +7,7 @@
     <ProjectGuid>{9CC6E7D4-46E3-46A7-A2D9-46716011A1F5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PartInspector</RootNamespace>
+    <RootNamespace>Ceres.PartInspector</RootNamespace>
     <AssemblyName>PartInspector</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -59,15 +59,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Wear Trackers\AlternatorBeltTracker.cs" />
-    <Compile Include="Wear Trackers\FluidTracker.cs" />
-    <Compile Include="Wear Trackers\SparkPlugTracker.cs" />
-    <Compile Include="Wear Trackers\_BaseWearTracker.cs" />
-    <Compile Include="Wear Trackers\SimpleWearTracker.cs" />
-    <Compile Include="Wear Trackers\OilFilterTracker.cs" />
-    <Compile Include="Wear Trackers\StandardWearTracker.cs" />
-    <Compile Include="PartInspector.cs" />
+    <Compile Include="Part Inspector\PartInspector.cs" />
+    <Compile Include="Part Inspector\Trackers\AlternatorBeltTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\FluidTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\OilFilterTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\SimpleWearTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\SparkPlugTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\StandardWearTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\_BaseWearTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="LICENSE.md" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

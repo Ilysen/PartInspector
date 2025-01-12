@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using UnityEngine;
 
-namespace PartInspector.Wear_Trackers
+namespace Ceres.PartInspector.Trackers
 {
 	/// <summary>
 	/// Tracks the amount of fluid in fluid containers (brake fluid, motor oil, and two-stroke fuel).
@@ -10,13 +10,12 @@ namespace PartInspector.Wear_Trackers
 	internal class FluidTracker : BaseWearTracker
 	{
 		/// <summary>
-		/// The FSM that keeps track of this spark plug's wear.
-		/// This is protected and not private because alternator belt trackers inherit logic - see <see cref="AlternatorBeltTracker"/> for more info.
+		/// The FSM that keeps track of this fluid container's current contents.
 		/// </summary>
-		protected FsmVariables _fluidFsm;
+		private FsmVariables _fluidFsm;
 
 		/// <summary>
-		/// The max fluid that this container can hold. Assigned in PartInspector.cs during initialization and used to calculate fractions (i.e. "half full") in <see cref="BuildDisplayText"/>.
+		/// The max fluid that this container can hold. Assigned in <see cref="PartInspector.CreateTrackerForPart(GameObject, PartInspector.TrackerType)"/> during initialization and used to calculate fractions (i.e. "half full") in <see cref="BuildDisplayText"/>.
 		/// </summary>
 		private float _maxFluid = 1f;
 
@@ -31,6 +30,9 @@ namespace PartInspector.Wear_Trackers
 		/// <inheritdoc/>
 		internal override float GetWearPercentage() => (GetFluidLevel() / _maxFluid) * 100;
 
+		/// <summary>
+		/// Gets the remaining fluid for this tracker.
+		/// </summary>
 		private float GetFluidLevel() => _fluidFsm.GetFsmFloat("Fluid").Value;
 
 		/// <inheritdoc/>

@@ -1,3 +1,4 @@
 ﻿.vs
-PartInspector/obj
-PartInspector/bin
+obj
+bin
+PartInspector.csproj.user

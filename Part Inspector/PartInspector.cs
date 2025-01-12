@@ -1,32 +1,22 @@
-﻿using HutongGames.PlayMaker;
+﻿using Ceres.PartInspector.Trackers;
+using HutongGames.PlayMaker;
 using MSCLoader;
-using PartInspector.Wear_Trackers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace PartInspector
+namespace Ceres.PartInspector
 {
 	public class PartInspector : Mod
 	{
-		private enum TrackerType
-		{
-			Standard = 1,
-			Simple = 2,
-			OilFilter = 3,
-			SparkPlug = 4,
-			AlternatorBelt = 5,
-			Fluid = 6
-		}
-
-		// MSCLoader stuff
-		public override string ID => "PartInspector";
+		public override string ID => "Ceres_PartInspector";
 		public override string Name => "Part Inspector";
 		public override string Author => "Ceres et al.";
-		public override string Version => "1.2.1";
+		public override string Version => "1.2.2";
 		public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
 
+		#region Mod setup and settings
 		internal static SettingsDropDownList DisplayLocation;
 		internal static SettingsDropDownList DisplayPrecision;
 		internal static SettingsSlider TextUpdateFrequency;
@@ -40,48 +30,14 @@ namespace PartInspector
 
 		internal static SettingsCheckBox VerboseLogging;
 
-		/// <summary>
-		/// The FSM variables used to track the Satsuma's part wear. We reference this a lot, so we save it early.
-		/// </summary>
-		internal static FsmVariables _satsumaVars;
-
-		/// <summary>
-		/// A list of all FSMs used in the motor database. These are where the game keeps track of if parts are installed, broken, etc - but not wear-and-tear, which exists on independently FSMs on each part.
-		/// </summary>
-		private List<PlayMakerFSM> _motorDb;
-
-		/// <summary>
-		/// Every wear tracker in the game world, associated to its game object.
-		/// </summary>
-		private Dictionary<GameObject, BaseWearTracker> _wearTrackers;
-
-		/// <summary>
-		/// The first person camera used by the player. Names are only updated if we're looking at the respective part.
-		/// </summary>
-		private Camera _plyCamera;
-
-		/// <summary>
-		/// The text GUI used to display the part's condition. Can either be within the part's name or in a separate area.
-		/// </summary>
-		private FsmString _displayGui;
-
-		/// <summary>
-		/// To save performance, and because parts are unlikely to rapidly change condition in a given time period, display names only update every few seconds. This value tracks how often parts update, in seconds.
-		/// </summary>
-		private float _timeBetweenUpdates = 10f;
-
-		/// <summary>
-		/// How many seconds have elapsed since we last updated displays. See <see cref="_timeBetweenUpdates"/> for more info.
-		/// </summary>
-		private float _updateTimer;
-
 		public override void ModSetup()
 		{
 			SetupFunction(Setup.OnLoad, Mod_OnLoad);
 			SetupFunction(Setup.Update, Mod_OnUpdate);
+			SetupFunction(Setup.ModSettings, Mod_Settings);
 		}
 
-		public override void ModSettings()
+		private void Mod_Settings()
 		{
 			Color headingColor = new Color(0.1f, 0.1f, 0.1f);
 
@@ -89,7 +45,7 @@ namespace PartInspector
 			DisplayLocation = Settings.AddDropDownList(this, "displayLocation", "Display location",
 				new string[] { "Part name", "Interaction text" }, 0, RefreshDisplayGUI);
 			DisplayPrecision = Settings.AddDropDownList(this, "displayPrecision", "Display precision",
-				new string[] { "Show exact integrity", "Show general description", "Show broken/not broken" }, 0);
+				new string[] { "Show exact information", "Show general description", "Show broken/not broken" }, 0);
 			TextUpdateFrequency = Settings.AddSlider(this, "updateFrequency", "Text update frequency",
 				0f, 10f, 10f, RebuildDisplays);
 
@@ -105,10 +61,94 @@ namespace PartInspector
 			Settings.AddHeader(this, "Debug", headingColor, Color.white);
 			VerboseLogging = Settings.AddCheckBox(this, "verboseLogging", "Verbose logging", false);
 		}
+		#endregion
+
+		#region Internal vars
+		/// <summary>
+		/// Used to designate the type of wear tracker a given part should receive, mostly through assignment in <see cref="_partNames"/>.
+		/// </summary>
+		private enum TrackerType
+		{
+			Standard = 1,
+			Simple = 2,
+			OilFilter = 3,
+			SparkPlug = 4,
+			AlternatorBelt = 5,
+			Fluid = 6
+		}
+
+		/// <summary>
+		/// Game objects with names in the keys of this dict will gain a wear tracker component when inspected, if they don't have one already, with some of that component's info being taken from the associated value of that key.
+		/// <br/><br/>
+		/// Names with an associated string will be given a <see cref="StandardWearTracker"/> using that string as the wear key; names with an associated <see cref="TrackerType"/> will instead use that type when creating the tracker.
+		/// </summary>
+		// msc is so spaghetti. modding is a pathway to abilities some consider to be unnatural
+		private readonly Dictionary<string, object> _partNames = new Dictionary<string, object>
+		{
+			{ "alternator(Clone)", "Alternator" },
+			{ "clutch disc(Clone)", "Clutch" },
+			{ "crankshaft(Clone)", "Crankshaft" },
+			{ "fuel pump(Clone)", "Fuelpump" },
+			{ "gearbox(Clone)", "Gearbox" },
+			{ "head gasket(Clone)", "Headgasket" },
+			{ "piston1(Clone)", "Piston1" },
+			{ "piston2(Clone)", "Piston2" },
+			{ "piston3(Clone)", "Piston3" },
+			{ "piston4(Clone)", "Piston4" },
+			{ "rocker shaft(Clone)", "Rockershaft" },
+			{ "starter(Clone)", "Starter" },
+			{ "water pump(Clone)", "Waterpump" },
+			{ "block(Clone)", TrackerType.Simple },
+			{ "oilpan(Clone)", TrackerType.Simple },
+			{ "oil filter(Clone)", TrackerType.OilFilter },
+			{ "spark plug(Clone)", TrackerType.SparkPlug },
+			{ "alternator belt(Clone)", TrackerType.AlternatorBelt },
+			{ "brake fluid(itemx)", TrackerType.Fluid },
+			{ "two stroke fuel(itemx)", TrackerType.Fluid },
+			{ "motor oil(itemx)", TrackerType.Fluid },
+			{ "coolant(itemx)", TrackerType.Fluid }
+		};
+
+		/// <summary>
+		/// The FSM variables used to track the Satsuma's part wear. We reference this a lot, so we save it early.
+		/// </summary>
+		private FsmVariables _satsumaVars;
+
+		/// <summary>
+		/// A list of all FSMs used in the motor database. These are where the game keeps track of if parts are installed, broken, etc - but not wear-and-tear, which exists on independently FSMs on each part.
+		/// </summary>
+		private List<PlayMakerFSM> _motorDb;
+
+		/// <summary>
+		/// Every wear tracker in the game world, associated to its game object.
+		/// </summary>
+		private Dictionary<GameObject, BaseWearTracker> _wearTrackers;
+
+		/// <summary>
+		/// The text GUI used to display the part's condition. Can either be within the part's name or in a separate area.
+		/// </summary>
+		private FsmString _displayGui;
+
+		/// <summary>
+		/// To save performance, and because parts are unlikely to rapidly change condition in a given time period, display names only update every few seconds. This value tracks how often parts update, in seconds.
+		/// </summary>
+		private float _timeBetweenUpdates = 10f;
+
+		/// <summary>
+		/// How many seconds have elapsed since we last updated displays. See <see cref="_timeBetweenUpdates"/> for more info.
+		/// </summary>
+		private float _updateTimer = 0f;
+		#endregion
+
+		#region Main functions
+		private void Mod_OnUpdate()
+		{
+			UpdateDisplays();
+			UpdateInspection();
+		}
 
 		private void Mod_OnLoad()
 		{
-			_plyCamera = GameObject.Find("PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera").GetComponent<Camera>();
 			_satsumaVars = PlayMakerExtensions.GetPlayMaker(GameObject.Find("SATSUMA(557kg, 248)").transform.Find("CarSimulation/MechanicalWear").gameObject, "Data").FsmVariables;
 			_motorDb = new List<PlayMakerFSM>();
 			_wearTrackers = new Dictionary<GameObject, BaseWearTracker>();
@@ -121,26 +161,6 @@ namespace PartInspector
 			RefreshDisplayGUI();
 			RebuildDisplays();
 			ModConsole.Print($"{Name} version {Version} has been initialized!");
-		}
-
-		/// <summary>
-		/// Updates the value of <see cref="_displayGui"/> based on user settings.
-		/// </summary>
-		private void RefreshDisplayGUI() => _displayGui = PlayMakerGlobals.Instance.Variables.FindFsmString(DisplayLocation.GetSelectedItemIndex() == 0 ? "PickedPart" : "GUIinteraction");
-
-		/// <summary>
-		/// Simple wrapper to adjust relevant values when update frequency settings are changed.
-		/// </summary>
-		private void RebuildDisplays()
-		{
-			_updateTimer = 0f;
-			_timeBetweenUpdates = TextUpdateFrequency.GetValue();
-		}
-
-		private void Mod_OnUpdate()
-		{
-			UpdateDisplays();
-			UpdateInspection();
 		}
 
 		/// <summary>
@@ -165,7 +185,6 @@ namespace PartInspector
 						continue;
 					}
 					kvp.Value.BuildDisplayText();
-
 				}
 				foreach (var obj in toRemove)
 				{
@@ -181,7 +200,6 @@ namespace PartInspector
 		/// </summary>
 		private void UpdateInspection()
 		{
-			// Raycasting every frame is extremely cheap compared to other logic, so we check to make sure we're aiming at something first
 			RaycastHit hit = UnifiedRaycast.GetRaycastHit();
 			if (hit.distance <= 1f && hit.collider?.gameObject != null)
 			{
@@ -212,6 +230,20 @@ namespace PartInspector
 					CreateTrackerForPart(go, tt);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Updates the value of <see cref="_displayGui"/> based on user settings.
+		/// </summary>
+		private void RefreshDisplayGUI() => _displayGui = PlayMakerGlobals.Instance.Variables.FindFsmString(DisplayLocation.GetSelectedItemIndex() == 0 ? "PickedPart" : "GUIinteraction");
+
+		/// <summary>
+		/// Simple wrapper to adjust relevant values when update frequency settings are changed.
+		/// </summary>
+		private void RebuildDisplays()
+		{
+			_updateTimer = 0f;
+			_timeBetweenUpdates = TextUpdateFrequency.GetValue();
 		}
 
 		/// <summary>
@@ -298,37 +330,6 @@ namespace PartInspector
 			if (VerboseLogging.GetValue())
 				ModConsole.Print($"A wear tracker component of type {bwt.GetType()} was added to a GameObject named \"{go.name}\".");
 		}
-
-		/// <summary>
-		/// Game objects with names in the keys of this dict will gain a wear tracker component when inspected, if they don't have one already, with some of that component's info being taken from the associated value of that key.
-		/// <br/><br/>
-		/// Names with an associated string will be given a <see cref="StandardWearTracker"/> using that string as the wear key; names with an associated <see cref="TrackerType"/> will instead use that type when creating the tracker. This is very spaghetti, but then again, so is this game.
-		/// </summary>
-		/// modding is a pathway to abilities some consider to be unnatural
-		private readonly Dictionary<string, object> _partNames = new Dictionary<string, object>
-		{
-			{ "alternator(Clone)", "Alternator" },
-			{ "clutch disc(Clone)", "Clutch" },
-			{ "crankshaft(Clone)", "Crankshaft" },
-			{ "fuel pump(Clone)", "Fuelpump" },
-			{ "gearbox(Clone)", "Gearbox" },
-			{ "head gasket(Clone)", "Headgasket" },
-			{ "piston1(Clone)", "Piston1" },
-			{ "piston2(Clone)", "Piston2" },
-			{ "piston3(Clone)", "Piston3" },
-			{ "piston4(Clone)", "Piston4" },
-			{ "rocker shaft(Clone)", "Rockershaft" },
-			{ "starter(Clone)", "Starter" },
-			{ "water pump(Clone)", "Waterpump" },
-			{ "block(Clone)", TrackerType.Simple },
-			{ "oilpan(Clone)", TrackerType.Simple },
-			{ "oil filter(Clone)", TrackerType.OilFilter },
-			{ "spark plug(Clone)", TrackerType.SparkPlug },
-			{ "alternator belt(Clone)", TrackerType.AlternatorBelt },
-			{ "brake fluid(itemx)", TrackerType.Fluid },
-			{ "two stroke fuel(itemx)", TrackerType.Fluid },
-			{ "motor oil(itemx)", TrackerType.Fluid },
-			{ "coolant(itemx)", TrackerType.Fluid }
-		};
+		#endregion
 	}
 }
