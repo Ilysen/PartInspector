@@ -28,10 +28,9 @@ namespace Ceres.PartInspector.Trackers
 		{
 			string newText;
 			float effectiveFilth = _dirtFsm.GetFsmFloat("Dirt").Value;
-			switch (PartInspector.DisplayPrecision.GetSelectedItemIndex())
+			switch (PartInspector.PartDisplayPrecision.GetSelectedItemIndex())
 			{
-				case 1: // "Intact" and "broken" doesn't really apply to oil filters, so we always generalize if not using the percentage option
-				case 2:
+				case 1: // General description
 					if (effectiveFilth >= 80)
 						newText = "Filthy";
 					else if (effectiveFilth >= 60)

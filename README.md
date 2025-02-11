@@ -13,6 +13,11 @@ I used the following resources to help make and test this mod:
 
 ## Changelog
 
+### Feb. 11, 2025
+#### Version 1.3
+* Now supports ground coffee, grill charcoal, fuse packages, R20 battery boxes, spark plug boxes, mosquito spray, spray cans, and fire extinguishers.
+* Split up the "Display precision" setting into two options: one for parts (also includes oil filters and spark plugs), and one for items. Both settings now default to general descriptions.
+
 ### Jan. 12, 2025
 #### Version 1.2.2
 * Updated mod ID from `PartInspector` to `Ceres_PartInspector`.

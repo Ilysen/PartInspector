@@ -52,7 +52,7 @@ namespace Ceres.PartInspector.Trackers
 				newText = "Broken";
 			else
 			{
-				switch (PartInspector.DisplayPrecision.GetSelectedItemIndex())
+				switch (PartInspector.PartDisplayPrecision.GetSelectedItemIndex())
 				{
 					case 1: // General description
 						string descriptor;

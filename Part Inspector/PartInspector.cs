@@ -13,12 +13,13 @@ namespace Ceres.PartInspector
 		public override string ID => "Ceres_PartInspector";
 		public override string Name => "Part Inspector";
 		public override string Author => "Ceres et al.";
-		public override string Version => "1.2.2";
-		public override string Description => "Inspect your parts for integrity, condition, and dirtiness.";
+		public override string Version => "1.3";
+		public override string Description => "Inspect your stuff for integrity, condition, and dirtiness.";
 
 		#region Mod setup and settings
 		internal static SettingsDropDownList DisplayLocation;
-		internal static SettingsDropDownList DisplayPrecision;
+		internal static SettingsDropDownList PartDisplayPrecision;
+		internal static SettingsDropDownList ItemDisplayPrecision;
 		internal static SettingsSlider TextUpdateFrequency;
 
 		internal static SettingsCheckBox EnableBasicTrackers;
@@ -27,6 +28,7 @@ namespace Ceres.PartInspector
 		internal static SettingsCheckBox EnableSparkPlugTrackers;
 		internal static SettingsCheckBox EnableOilFilterTrackers;
 		internal static SettingsCheckBox EnableFluidContainerTrackers;
+		internal static SettingsCheckBox EnableFullnessContainerTrackers;
 
 		internal static SettingsCheckBox VerboseLogging;
 
@@ -44,8 +46,10 @@ namespace Ceres.PartInspector
 			Settings.AddHeader(this, "Interface", headingColor, Color.white);
 			DisplayLocation = Settings.AddDropDownList(this, "displayLocation", "Display location",
 				new string[] { "Part name", "Interaction text" }, 0, RefreshDisplayGUI);
-			DisplayPrecision = Settings.AddDropDownList(this, "displayPrecision", "Display precision",
-				new string[] { "Show exact information", "Show general description", "Show broken/not broken" }, 0);
+			PartDisplayPrecision = Settings.AddDropDownList(this, "displayPrecision", "Part inspection precision",
+				new string[] { "Show exact information", "Show general description", "Show broken/not broken" }, 1);
+			ItemDisplayPrecision = Settings.AddDropDownList(this, "itemDisplayPrecision", "Item inspection precision",
+				new string[] { "Show exact information", "Show general description" }, 1);
 			TextUpdateFrequency = Settings.AddSlider(this, "updateFrequency", "Text update frequency",
 				0f, 10f, 10f, RebuildDisplays);
 
@@ -56,6 +60,7 @@ namespace Ceres.PartInspector
 			EnableSparkPlugTrackers = Settings.AddCheckBox(this, "enableSparkPlugTrackers", "Spark plug wear", true);
 			EnableOilFilterTrackers = Settings.AddCheckBox(this, "enableOilFilterTrackers", "Oil filter dirtiness", true);
 			EnableFluidContainerTrackers = Settings.AddCheckBox(this, "enableFluidContainerTrackers", "Fluid container fullness", true);
+			EnableFullnessContainerTrackers = Settings.AddCheckBox(this, "enableOtherFullnessTrackers", "Coffee and charcoal fullnes", true);
 			Settings.AddText(this, "Includes brake fluid, motor oil, two-stroke fuel, and coolant canisters.");
 
 			Settings.AddHeader(this, "Debug", headingColor, Color.white);
@@ -74,7 +79,29 @@ namespace Ceres.PartInspector
 			OilFilter = 3,
 			SparkPlug = 4,
 			AlternatorBelt = 5,
-			Fluid = 6
+			Fullness = 6,
+			Quantity = 7
+		}
+
+		/// <summary>
+		/// Used to track initialization info for fullness trackers, which are the most complex tracker type by far due to accounting for many items.
+		/// This struct can be used to designate the name of the FSM variable that's being tracked, as well as its maximum value (for percentage/ratio calculations)
+		/// and whether or not it's a fluid (for deciding whether to display liters remaining or just the percentage left.)
+		/// </summary>
+		private struct TrackerInfo
+		{
+			internal TrackerType TrackerType;
+			internal string ValueKey;
+			internal float MaxValue;
+			internal bool IsFluid;
+
+			internal TrackerInfo(TrackerType TrackerType, string ValueKey = default, float MaxValue = default, bool IsFluid = default)
+			{
+				this.TrackerType = TrackerType;
+				this.ValueKey = ValueKey;
+				this.MaxValue = MaxValue;
+				this.IsFluid = IsFluid;
+			}
 		}
 
 		/// <summary>
@@ -98,15 +125,27 @@ namespace Ceres.PartInspector
 			{ "rocker shaft(Clone)", "Rockershaft" },
 			{ "starter(Clone)", "Starter" },
 			{ "water pump(Clone)", "Waterpump" },
+
 			{ "block(Clone)", TrackerType.Simple },
 			{ "oilpan(Clone)", TrackerType.Simple },
+			{ "alternator belt(Clone)", TrackerType.AlternatorBelt },
+
+			{ "brake fluid(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 1f, IsFluid: true ) },
+			{ "two stroke fuel(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 5f, IsFluid: true ) },
+			{ "motor oil(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 4f, IsFluid: true ) },
+			{ "coolant(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 10f, IsFluid: true ) },
+
 			{ "oil filter(Clone)", TrackerType.OilFilter },
 			{ "spark plug(Clone)", TrackerType.SparkPlug },
-			{ "alternator belt(Clone)", TrackerType.AlternatorBelt },
-			{ "brake fluid(itemx)", TrackerType.Fluid },
-			{ "two stroke fuel(itemx)", TrackerType.Fluid },
-			{ "motor oil(itemx)", TrackerType.Fluid },
-			{ "coolant(itemx)", TrackerType.Fluid }
+			{ "spray can(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 100f ) },
+			{ "mosquito spray(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 100f ) },
+			{ "fire extinguisher(itemx)", new TrackerInfo(TrackerType.Fullness, MaxValue: 100f ) },
+			{ "ground coffee(itemx)", new TrackerInfo(TrackerType.Fullness, "Ground", 100f ) },
+			{ "grill charcoal(itemx)", new TrackerInfo(TrackerType.Fullness, "Contents", 140f ) },
+
+			{ "spark plug box(Clone)", TrackerType.Quantity },
+			{ "r20 battery box(Clone)", TrackerType.Quantity },
+			{ "fuse package(Clone)", TrackerType.Quantity },
 		};
 
 		/// <summary>
@@ -224,10 +263,7 @@ namespace Ceres.PartInspector
 				{
 					if (VerboseLogging.GetValue())
 						ModConsole.Print($"Detected a valid object named \"{go.name}\". Adding wear tracker.");
-					TrackerType tt = TrackerType.Standard;
-					if (_partNames[go.name] is TrackerType pt)
-						tt = pt;
-					CreateTrackerForPart(go, tt);
+					CreateTrackerForPart(go, _partNames[go.name]);
 				}
 			}
 		}
@@ -251,8 +287,23 @@ namespace Ceres.PartInspector
 		/// Info will be taken from <see cref="_partNames"/> to create the component; invalid objects will thus cause this function to throw an error.
 		/// </summary>
 		/// <param name="go">The <see cref="GameObject"/> that will begin being tracked.</param>
-		private void CreateTrackerForPart(GameObject go, TrackerType tt = TrackerType.Standard)
+		private void CreateTrackerForPart(GameObject go, object info = null)
 		{
+			TrackerType tt = TrackerType.Standard;
+			string key = "Fluid";
+			float max = 1f;
+			bool isFluid = false;
+			if (info is TrackerType t)
+				tt = t;
+			else if (info is TrackerInfo ti)
+			{
+				tt = ti.TrackerType;
+				isFluid = ti.IsFluid;
+				if (ti.ValueKey != default)
+					key = ti.ValueKey;
+				if (ti.MaxValue != default)
+					max = ti.MaxValue;
+			}
 			FsmVariables dbInfo = null;
 			foreach (PlayMakerFSM fsm in _motorDb)
 			{
@@ -296,19 +347,15 @@ namespace Ceres.PartInspector
 						break;
 					newTrackerType = typeof(AlternatorBeltTracker);
 					break;
-				case TrackerType.Fluid:
-					if (!EnableFluidContainerTrackers.GetValue())
+				case TrackerType.Fullness:
+					if ((isFluid && !EnableFluidContainerTrackers.GetValue()) || (!isFluid && !EnableFullnessContainerTrackers.GetValue()))
 						break;
-					FluidTracker ft = go.AddComponent<FluidTracker>();
-					float maxFluid = 1f;
-					if (go.name.Contains("motor oil"))
-						maxFluid = 4f;
-					else if (go.name.Contains("two stroke fuel"))
-						maxFluid = 5f;
-					else if (go.name.Contains("coolant"))
-						maxFluid = 10f;
-					ft.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables, maxFluid);
+					FullnessTracker ft = go.AddComponent<FullnessTracker>();
+					ft.Initialize(go.name, PlayMakerExtensions.GetPlayMaker(go, "Use").FsmVariables, max, key, isFluid);
 					bwt = ft;
+					break;
+				case TrackerType.Quantity:
+					newTrackerType = typeof(QuantityTracker);
 					break;
 			}
 			// We have a convenient thing going for us here with a bunch of different types of part:

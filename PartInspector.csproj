@@ -61,9 +61,10 @@
   <ItemGroup>
     <Compile Include="Part Inspector\PartInspector.cs" />
     <Compile Include="Part Inspector\Trackers\AlternatorBeltTracker.cs" />
-    <Compile Include="Part Inspector\Trackers\FluidTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\FullnessTracker.cs" />
     <Compile Include="Part Inspector\Trackers\OilFilterTracker.cs" />
     <Compile Include="Part Inspector\Trackers\SimpleWearTracker.cs" />
+    <Compile Include="Part Inspector\Trackers\QuantityTracker.cs" />
     <Compile Include="Part Inspector\Trackers\SparkPlugTracker.cs" />
     <Compile Include="Part Inspector\Trackers\StandardWearTracker.cs" />
     <Compile Include="Part Inspector\Trackers\_BaseWearTracker.cs" />
@@ -75,4 +76,14 @@
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if "$(ConfigurationName)" == "Debug" (
+copy "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\My Summer Car\Mods" /y
+copy "$(TargetDir)$(TargetName).pdb" "C:\Program Files (x86)\Steam\steamapps\common\My Summer Car\Mods" /y
+cd "C:\Program Files (x86)\Steam\steamapps\common\My Summer Car\Mods"
+call "C:\Program Files (x86)\Steam\steamapps\common\My Summer Car\Mods\debug.bat"
+) ELSE (
+copy "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\My Summer Car\Mods" /y
+)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
