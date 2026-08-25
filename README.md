@@ -1,3 +1,8 @@
+# This repository has moved to https://github.com/Ilysen/PartInspectorMWC!
+
+Despite the name, that version works on MSC as well, and represents the new modern codebase. The original description has been kept here for archival purposes.
+
+<details><summary>Original description</summary>
 # Part Inspector
 
 This is a mod for My Summer Car that lets you look at car parts to see how damaged they are. For more info, take a look at the [Nexus page](https://www.nexusmods.com/mysummercar/mods/2291).
@@ -41,3 +46,4 @@ I used the following resources to help make and test this mod:
 * All damageable parts can show their wear as a number, a general description, or just if they're broken or not.
 * Oil filters display their dirtiness!
 * Built and tested on MSCLoader 1.2.7.
+</details>
